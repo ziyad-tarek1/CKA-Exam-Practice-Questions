@@ -1,215 +1,246 @@
 # CKA-Exam-Practice-Questions
 Certified Kubernetes Administrator Mock Exam Real Questions 
 
+## Hyperlink Section  
+- [Q1: Create a Pod with Special Capabilities](#q1-weightage-7)  
+- [Q2: Upgrade Deployment Image Version](#q2-weightage-11)  
+- [Q3: Scale a Deployment](#q3-weightage-7)  
+- [Q4: Deploy a Pod with Labels](#q4-weightage-4)  
+- [Q5: Create a Static Pod](#q5-weightage-4)  
+- [Q6: Create a Multi-Container Pod](#q6-weightage-7)  
+- [Q7: Create a Pod in a Custom Namespace](#q7-weightage-5)  
+- [Q8: Get Node Info in JSON Format](#q8-weightage-4) 
 
+---
 
-### Q1: Weightage: 7%
+## Q1: **Weightage: 7%**
 
-Create a new pod called web-pod with image busybox Allow the pod to be able to set system_time The container should sleep for 3200 seconds.
+**Task:**  
+Create a new pod called `web-pod` with the image `busybox`. Allow the pod to set `system_time`. The container should sleep for 3200 seconds.
 
-### Answer :
+**Answer:**  
+1. Create the pod using the dry-run command:
+    ```bash
+    kubectl run web-pod --image=busybox --command sleep 3000 --dry-run=client -o yaml > web-pod.yaml
+    ```
 
-1.1 create the pod using the dry run command
-``` bash
-controlplane $ kubectl run web-pod --image=busybox --command sleep 3000 --dry-run=client -o yaml > web-pod.yaml
+2. Edit the `web-pod.yaml` file:
+    ```bash
+    vi web-pod.yaml
+    ```
 
- ```
+3. Update the YAML file with the following:
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: web-pod
+      name: web-pod
+    spec:
+      containers:
+      - command:
+        - sleep
+        - "3000"
+        image: busybox
+        name: web-pod
+        securityContext:  # Add this line
+          capabilities:   # Add this line
+            add: ["SYS_TIME"]  # Add this line
+        resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+    status: {}
+    ```
 
-1.2 edit the yaml file 
-``` bash
-vi web-pod.yaml
- ```
+4. Run the create command:
+    ```bash
+    kubectl create -f web-pod.yaml
+    ```
 
-1.3 edit the pod using the instruction this documentation link :
-https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+---
 
-``` bash
-apiVersion: v1
-kind: Pod
-metadata:
-  creationTimestamp: null
-  labels:
-    run: web-pod
-  name: web-pod
-spec:
-  containers:
-  - command:
-    - sleep
-    - "3000"
-    image: busybox
-    name: web-pod
-    securityContext:                             # add this line 
-      capabilities:                              # add this line 
-        add: ["SYS_TIME"]           # add this line 
+## Q2: **Weightage: 11%**
 
-    resources: {}
-  dnsPolicy: ClusterFirst
-  restartPolicy: Always
-status: {}
+**Task:**  
+Create a new deployment called `myproject` with the image `nginx:1.16` and 1 replica. Next, upgrade the deployment to version `1.17` using a rolling update. Ensure the version upgrade is recorded in the resource annotation.
 
- ```
+**Answer:**  
+1. Create the deployment and save it as a backup:
+    ```bash
+    kubectl create deployment myproject --image=nginx:1.16 --replicas=1 --dry-run=client -o yaml > myproject.yaml
+    kubectl create deployment myproject --image=nginx:1.16 --replicas=1
+    ```
 
-1.4 run the below create command
+2. Upgrade the image version:
+    ```bash
+    kubectl set image deployment/myproject nginx=nginx:1.17 --record
+    ```
 
-``` bash
-controlplane $ kubectl create -f web-pod.yaml 
-pod/web-pod created
-controlplane $ 
-```
+---
 
-### Q2: Weightage: 11%
+## Q3: **Weightage: 7%**
 
-Create a new deployment called myproject, with image nginx:1.16 and 1 replica. Next upgrade the deployment 
-to version 1.17 using rolling update Make sure that the version upgrade is recorded in the resource annotation.
+**Task:**  
+Create a new deployment called `my-deployment`. Scale the deployment to 3 replicas and ensure the desired number of pods are always running.
 
-### Answer :
+**Answer:**  
+1. Create the deployment with dry-run, verify it, and apply it:
+    ```bash
+    kubectl create deployment my-deployment --image=nginx --replicas=3 --dry-run=client -o yaml > my-deployment.yaml
+    kubectl create -f my-deployment.yaml
+    ```
 
-2.1 create the deployment and a backup dry run for it
+---
 
-``` bash
-controlplane $ kubectl create deployment myproject --image=nginx:1.16 --replicas=1 --dry-run=client -o yaml > myproject.yaml
- ```
-``` bash 
-kubectl create deployment myproject --image=nginx:1.16 --replicas=1
-```
-2.1 using the documemtation to upgrade the image version 
-https://kubernetes.io/docs/reference/kubectl/quick-reference/
+## Q4: **Weightage: 4%**
 
-``` bash
-kubectl set image deployment/myproject nginx=nginx:1.17 --record
+**Task:**  
+Deploy a `web-nginx` pod using the `nginx:1.17` image with the labels `tier=web-app`.
 
-# the --record flag for recorded in the resource annotation
-```
+**Answer:**  
+1. Create the YAML file using dry-run, verify the labels, and apply it:
+    ```bash
+    kubectl run web-nginx --image=nginx:1.17 --labels tier=web-app --dry-run=client -o yaml > web-nginx.yaml
+    kubectl create -f web-nginx.yaml
+    ```
 
+2. Verify the labels:
+    ```bash
+    kubectl get pod --show-labels
+    ```
 
-### Q3  Weightage: 7%
+---
 
-Create a new deployment called my-deployment. Scale the deployment to 3 replicas.
-Make sure desired number of pod always running.
+## Q5: **Weightage: 4%**
 
-### Answer :
+**Task:**  
+Create a static pod on `node01` called `static-pod` with the image `nginx`. Ensure it is recreated/restarted automatically in case of failure.
 
-3.1 : create the dry run for the deployment check it and run it 
+**Answer:**  
+1. Create a dry-run file for the static pod:
+    ```bash
+    kubectl run static-pod --image=nginx --dry-run=client -o yaml > static-pod.yaml
+    ```
 
-``` bash
-kubectl create deployment my-deployment --image=nginx --replicas=3 --dry-run=client -o yaml > my-deployment.yaml
+2. SSH into `node01` and check the kubelet static pod path:
+    ```bash
+    ssh node01
+    ps aux | grep kubelet
+    # Output shows staticPodPath: /etc/kubernetes/manifests
+    ```
 
-kubectl create -f my-deployment.yaml
-  ```
+3. Move to the static pod path and create the YAML file:
+    ```bash
+    cd /etc/kubernetes/manifests
+    vi static-pod.yaml
+    ```
 
-### Q4 Weightage: 4%
+4. Add the following configuration:
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        run: static-pod
+      name: static-pod
+    spec:
+      containers:
+      - image: nginx
+        name: static-pod
+    ```
 
-Deploy a web-nginx pod using the nginx:1.17 image with the labels set to tier=web-app.
+5. Verify the pod is created on the master node:
+    ```bash
+    kubectl get pod
+    ```
 
-Answer :
-4.1 run the dry run command and double check the yaml file for the lables then run the create command
+---
 
-``` bash
-kubectl run web-nginx --image=nginx:1.17 --labels tier=web-app --dry-run=client -o yaml > web-nginx.yaml
+## Q6: **Weightage: 7%**
 
-kubectl create -f web-nginx.yaml 
-```
+**Task:**  
+Create a pod called `pod-multi` with two containers:
+- **Container 1**: name `container1`, image `nginx`
+- **Container 2**: name `container2`, image `busybox`, command `sleep 4800`
 
-``` bash
-kubectl get pod --show-labels
-```
+**Answer:**  
+1. Create a dry-run for a single container and edit it:
+    ```bash
+    kubectl run pod-multi --image=nginx --dry-run=client -o yaml > pod-multi.yaml
+    vi pod-multi.yaml
+    ```
 
+2. Update the YAML file:
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        run: pod-multi
+      name: pod-multi
+    spec:
+      containers:
+      - image: nginx
+        name: container1
+      - image: busybox
+        name: container2
+        command: ['sh', '-c', 'sleep 4800']
+    ```
 
-### Q5 Weightage: 4%
+3. Create the pod:
+    ```bash
+    kubectl create -f pod-multi.yaml
+    ```
 
-Create a static pod on node01 called static-pod with image nginx and you have to make sure that it is recreated/restarted automatically in case of any failure happens
+---
 
-### Answer :
- 5.1  create a dry run for the static-pod 
+## Q7: **Weightage: 5%**
 
- ``` bash 
-controlplane $ kubectl run static-pod --image=nginx --dry-run=client -o yaml > static-pod.yaml
- ```
+**Task:**  
+Create a pod called `test-pod` in the "custom" namespace, with labels `env=test` and `tier=backend`, using the image `nginx:1.17`.
 
- 5.2 ssh to the node and check the configuration file that refers to the static pods location
+**Answer:**  
+1. Check if the `custom` namespace exists; if not, create it:
+    ```bash
+    kubectl get ns
+    kubectl create ns custom
+    ```
 
+2. Create the pod YAML using dry-run:
+    ```bash
+    kubectl run test-pod --image=nginx:1.17 --labels env=test,tier=backend --namespace=custom --dry-run=client -o yaml > test-pod.yaml
+    ```
 
- ``` bash 
- ssh node01
-```
-``` bash 
- 5.3 check the kubelet location 
+3. Example YAML:
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        env: test
+        tier: backend
+      name: test-pod
+      namespace: custom
+    spec:
+      containers:
+      - image: nginx:1.17
+        name: test-pod
+    ```
 
- ps aux | grep kubelet
-# the output
+---
 
-node01 $ ps aux | grep kubelet
-root        1093  0.8  4.3 1904760 88076 ?       Ssl  21:22   0:39 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock --pod-infra-container-image=registry.k8s.io/pause:3.10 --container-runtime-endpoint unix:///run/containerd/containerd.sock --cgroup-driver=systemd --eviction-hard imagefs.available<5%,memory.available<100Mi,nodefs.available<5% --fail-swap-on=false
-root       22258  0.0  0.0   3436   720 pts/0    S+   22:42   0:00 grep --color=auto kubelet
-node01 $ 
-```
-``` bash 
-## as shown the configuration of the kubelet proocess is at /var/lib/kubelet/config.yaml look for staticPodPath: /etc/kubernetes/manifests 
-# move to it node01 $ cd /etc/kubernetes/manifests 
-cd /etc/kubernetes/manifests 
+## Q8: **Weightage: 4%**
 
- vi static-pod.yaml
-```
-``` bash
- apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    run: static-pod
-  name: static-pod
-spec:
-  containers:
-  - image: nginx
-    name: static-pod
- 
-  ```
-5.4 on the master node check it has been created 
+**Task:**  
+Get the node `node01` in JSON format and store it in a file at `./node-info.json`.
 
-``` bash 
-controlplane $ kubectl get pod
-NAME                READY   STATUS    RESTARTS   AGE
-static-pod-node01   1/1     Running   0          45s
-controlplane $ 
-```
+**Answer:**  
+1. Run the command:
+    ```bash
+    kubectl get node node01 -o json > ./node-info.json
+    ```
 
-### Q6 Weightage: 7 % 
+--- 
 
-Create a pod called pod-multi with two containers, as given below:
-
-Container 1 - name: container1, image: nginx
-
-Container2 - name: container2, image: busybox, command: sleep 4800
-
-### Answer :
-
-6.1 create a dry run fo a single containr the edit it 
-`` bash 
-kubectl run pod-multi --image=nginx --dry-run=client -o yaml > pod-multi.yaml
-```
-
-```bash
-vi pod-multi.yaml
-```
-
-``` bash 
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    run: pod-multi
-  name: pod-multi
-spec:
-  containers:
-  - image: nginx
-    name: container1
-  - image: busybox
-    name: container2
-    command: ['sh', '-c', 'sleep 4800']
-```
-6.2 create the pod 
-
-``` bash 
-kubectl create -f pod-multi.yaml
-```
-
-### Q7 Weightage: 5 %
