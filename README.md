@@ -120,3 +120,55 @@ kubectl get pod --show-labels
 Create a static pod on node01 called static-pod with image nginx and you have to make sure that it is recreated/restarted automatically in case of any failure happens
 
 Answer :
+ 5.1  create a dry run for the static-pod 
+
+ ``` bash 
+controlplane $ kubectl run static-pod --image=nginx --dry-run=client -o yaml > static-pod.yaml
+ ```
+
+ 5.2 ssh to the node and check the configuration file that refers to the static pods location
+
+
+ ``` bash 
+ ssh node01
+```
+``` bash 
+ 5.3 check the kubelet location 
+
+ ps aux | grep kubelet
+# the output
+
+node01 $ ps aux | grep kubelet
+root        1093  0.8  4.3 1904760 88076 ?       Ssl  21:22   0:39 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock --pod-infra-container-image=registry.k8s.io/pause:3.10 --container-runtime-endpoint unix:///run/containerd/containerd.sock --cgroup-driver=systemd --eviction-hard imagefs.available<5%,memory.available<100Mi,nodefs.available<5% --fail-swap-on=false
+root       22258  0.0  0.0   3436   720 pts/0    S+   22:42   0:00 grep --color=auto kubelet
+node01 $ 
+```
+``` bash 
+## as shown the configuration of the kubelet proocess is at /var/lib/kubelet/config.yaml look for staticPodPath: /etc/kubernetes/manifests 
+# move to it node01 $ cd /etc/kubernetes/manifests 
+cd /etc/kubernetes/manifests 
+
+ vi static-pod.yaml
+```
+``` bash
+ apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: static-pod
+  name: static-pod
+spec:
+  containers:
+  - image: nginx
+    name: static-pod
+ 
+  ```
+5.4 on the master node check it has been created 
+
+``` bash 
+controlplane $ kubectl get pod
+NAME                READY   STATUS    RESTARTS   AGE
+static-pod-node01   1/1     Running   0          45s
+controlplane $ 
+```
+
