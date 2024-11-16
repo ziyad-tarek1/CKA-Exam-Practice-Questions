@@ -7,7 +7,7 @@ Certified Kubernetes Administrator Mock Exam Real Questions
 
 Create a new pod called web-pod with image busybox Allow the pod to be able to set system_time The container should sleep for 3200 seconds.
 
-Answer:
+### Answer :
 
 1.1 create the pod using the dry run command
 ``` bash
@@ -62,7 +62,7 @@ controlplane $
 Create a new deployment called myproject, with image nginx:1.16 and 1 replica. Next upgrade the deployment 
 to version 1.17 using rolling update Make sure that the version upgrade is recorded in the resource annotation.
 
-Answer :
+### Answer :
 
 2.1 create the deployment and a backup dry run for it
 
@@ -87,7 +87,7 @@ kubectl set image deployment/myproject nginx=nginx:1.17 --record
 Create a new deployment called my-deployment. Scale the deployment to 3 replicas.
 Make sure desired number of pod always running.
 
-Answer :
+### Answer :
 
 3.1 : create the dry run for the deployment check it and run it 
 
@@ -119,7 +119,7 @@ kubectl get pod --show-labels
 
 Create a static pod on node01 called static-pod with image nginx and you have to make sure that it is recreated/restarted automatically in case of any failure happens
 
-Answer :
+### Answer :
  5.1  create a dry run for the static-pod 
 
  ``` bash 
@@ -172,3 +172,44 @@ static-pod-node01   1/1     Running   0          45s
 controlplane $ 
 ```
 
+### Q6 Weightage: 7 % 
+
+Create a pod called pod-multi with two containers, as given below:
+
+Container 1 - name: container1, image: nginx
+
+Container2 - name: container2, image: busybox, command: sleep 4800
+
+### Answer :
+
+6.1 create a dry run fo a single containr the edit it 
+`` bash 
+kubectl run pod-multi --image=nginx --dry-run=client -o yaml > pod-multi.yaml
+```
+
+```bash
+vi pod-multi.yaml
+```
+
+``` bash 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: pod-multi
+  name: pod-multi
+spec:
+  containers:
+  - image: nginx
+    name: container1
+  - image: busybox
+    name: container2
+    command: ['sh', '-c', 'sleep 4800']
+```
+6.2 create the pod 
+
+``` bash 
+kubectl create -f pod-multi.yaml
+```
+
+### Q7 Weightage: 5 %
