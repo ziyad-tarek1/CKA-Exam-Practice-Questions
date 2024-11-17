@@ -417,5 +417,53 @@ systemctl restart kubelet
 kubectl uncordn node01
 ```
 
+---
+
+## Q13: **Weightage: 11%**
+**Task:** 
+Take a backup of the ETCD database and save it to “/opt/etcd-backup.db” Also restore the ETCD database from the backup
+
+**Answer:**
+1. locate the etcd certificate files locations 
+
+``` bash 
+ll /etc/kubernetes/pki/etcd/
+```
+2. open the static file configuration of etcd and double check on the certificate path
+
+```bash
+ cat /etc/kubernetes/manifests/etcd.yaml
+```
+
+3. the 3 certificate files are
+
+```bash
+ - --cert-file=/etc/kubernetes/pki/etcd/server.crt
+ - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+ - --key-file=/etc/kubernetes/pki/etcd/server.key
+ ```
+
+ 4. run the save command 
+
+ ```bash 
+ETCDCTL_API=3 etcdctl --endpoints="https://172.30.1.2:2379" \
+--key=/etc/kubernetes/pki/etcd/server.key \
+--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+--cert=/etc/kubernetes/pki/etcd/server.crt \
+snapshot save /opt/etcd-backup.db
+ ```
+
+5. to restore that backup in a different location and then point to this location in the etcd-backup
+
+```bash
+ETCDCTL_API=3 etcdctl --data-dir=/var/lib/etcd-backup snapshot restore /opt/etcd-backup.db
+```
+
+6. now change the volumehostpath in the /etc/kubernetes/manifests/etcd.yaml to the new location
+(Note : the old one by defult is /var/lib/etcd )
+```bash 
+vim /etc/kubernetes/manifests/etcd.yaml
+```
+
 
 ---
