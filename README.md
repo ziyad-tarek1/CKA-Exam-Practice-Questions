@@ -315,10 +315,73 @@ ssh node01
 2. check the kubelet state
 
 ```bash 
-
-
+ps aux | grep kubelet
 
 ```
+3. check the logs of kubelet
+
+``` bash 
+journalctl -x | grep kubelet | grep error
+
+```
+4. check the kubelet configuration file it maybe an issue with the certificate it should be at
+ /var/lib/kubelet/pki/
+
+```bash 
+ vim /etc/kubernetes/kubelet.conf 
+```
+
+```bash
+
+node01 $ ll /var/lib/kubelet/pki/
+total 20
+drwxr-xr-x 2 root root 4096 Nov  6 12:45 ./
+drwxrwxr-x 9 root root 4096 Nov  6 12:45 ../
+-rw------- 1 root root 1110 Nov  6 12:45 kubelet-client-2024-11-06-12-45-21.pem
+lrwxrwxrwx 1 root root   59 Nov  6 12:45 kubelet-client-current.pem -> /var/lib/kubelet/pki/kubelet-client-2024-11-06-12-45-21.pem
+-rw-r--r-- 1 root root 2254 Nov  6 12:45 kubelet.crt
+-rw------- 1 root root 1675 Nov  6 12:45 kubelet.key
+
+```
+```bash 
+systemctl restart kubelet 
+```
+---
+
+## Q12: **Weightage: 11%**
+**Task:** 
+Upgrade the Cluster (Master and worker Node) from 1.18.0 to 1.19.0. Make sure to first drain both Node and make it available after upgrade.
+
+**Answer:**
+1. open new tap to ssh at node01
+
+``` bash 
+ssh node01 
+```
+
+2. drain the master node first
+
+```bash 
+k drain controlplane --ignore-daemonsets --force 
+```
+
+3. install the kubeadm needed packages
+
+```bash 
+sudo apt-mark unhold kubeadm && \ 
+> sudo apt-get update && sudo apt-get install -y kubeadm=1.19.0-00 \
+> sudo apt-mark hold kubeadm
+```
+4. run the upgrade aplly
+
+```bash
+
+kubeadm upgrade apply v1.19.0 -y 
+
+```
+
+
+
 
 
 ---
