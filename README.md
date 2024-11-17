@@ -550,4 +550,23 @@ kubectl config use-context myuser
 
 --- 
 
----
+## Q15: **Weightage: 4%**
+
+**Task:**  
+Create a nginx pod called dns-resolver using image
+
+nginx, expose it internally with a service called dns- resolver-service.
+
+Check if pod and service name are resolvable from within the cluster.
+
+Use the image: busybox:1.28 for dns lookup. Save the result in /root/nginx.svc
+
+
+**Answer:**  
+1. Run the command:
+    ```bash
+
+    
+    ```
+
+--- 
