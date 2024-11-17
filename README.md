@@ -10,6 +10,7 @@ Certified Kubernetes Administrator Mock Exam Real Questions
 - [Q6: Create a Multi-Container Pod](#q6-weightage-7)  
 - [Q7: Create a Pod in a Custom Namespace](#q7-weightage-5)  
 - [Q8: Get Node Info in JSON Format](#q8-weightage-4) 
+- [Q9: Get Nodes oslmages Query Info in JSON Format](#q9-weightage-5) 
 
 ---
 
@@ -244,3 +245,80 @@ Get the node `node01` in JSON format and store it in a file at `./node-info.json
 
 --- 
 
+## Q9: **Weightage: 7%**
+**Task:** 
+Use JSON PATH query to retrieve the oslmages of all the nodes and store it in a file "all-nodes-os-info.txt" at root location.
+
+Note: The osImage are under the nodeInfo section under status of each node.
+
+**Answer:**
+1. using the documentation at  https://kubernetes.io/docs/reference/kubectl/quick-reference/ 
+
+``` bash 
+kubectl get nodes -o jsonpath='{.items[*].status.nodeInfo.osImage}' > all-nodes-os-info.txt
+
+```
+
+---
+
+
+
+## Q10 : **Weightage: 4%**
+**Task:** 
+Create a Persistent Volume with the given specification.
+
+Volume Name: pv-demo
+
+Storage:100Мі
+
+Access modes: ReadWriteMany
+
+Host Path: /pv/host-data
+
+**Answer:**
+1. using the documentation at  https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+``` bash 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-demo
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /pv/host-data
+
+```
+2. run the create command
+```bash
+k create -f pv-demo.yaml
+```
+
+---
+
+## Q11: **Weightage: 7%**
+**Task:** 
+Worker Node “node01” not responding, Debug the issue and fix it.
+
+
+
+**Answer:**
+1. check the network by doing ssh at the node in a new tap
+
+``` bash 
+ssh node01
+
+```
+2. check the kubelet state
+
+```bash 
+
+
+
+```
+
+
+---
