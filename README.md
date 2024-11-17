@@ -375,13 +375,47 @@ sudo apt-mark unhold kubeadm && \
 4. run the upgrade aplly
 
 ```bash
-
 kubeadm upgrade apply v1.19.0 -y 
+```
+5. now upgrade the kubelet and kubectl
 
+```bash
+sudo apt install kubelet=1.19.0-00 kubectl=1.19.0-00
 ```
 
+6. now restart the kubelet then uncordn the controlplane node
 
+```bash
+systemctl restart kubelet
 
+kubectl uncordn controlplane
+```
+
+7. now drain node01
+
+```bash 
+k drain node01 
+```
+8. install the kubeadm versuin
+
+```bash
+
+node01 $ sudo apt install kubeadm=1.19.0-00
+
+node01 $ kubeadm upgrade node
+```
+9. now upgrade the kubelet and kubectl
+
+```bash
+sudo apt install kubelet=1.19.0-00 kubectl=1.19.0-00
+```
+10. now restart the kubelet then uncordn the node01 node
+
+```bash
+systemctl restart kubelet
+
+kubectl uncordn node01
+```
 
 
 ---
