@@ -468,105 +468,120 @@ vim /etc/kubernetes/manifests/etcd.yaml
 ## Q14: **Weightage: 7%**
 
 **Task:**  
-Create a new user “ajeet”. Grant him access to the cluster. User “ajeet” should have permission to create, list, get, update and delete pods. The private key exists at location:
+Create a new user `ajeet` and grant them access to the cluster. User `ajeet` should have permissions to create, list, get, update, and delete pods. The private key is located at `/root/ajeet/.key`, and the CSR is at `/root/ajeet.csr`.
 
-/root/ajeet/.key and csr at /root/ajeet.csr
+---
 
+### **Answer:**  
 
-**Answer:**  
-0. in case the user certificate is not given in the exam follow the below steps:
+### Step 0: Generate Certificate (if not provided in the exam)
+1. Visit the Kubernetes documentation on [Certificate Signing Requests](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/).
 
-- go to the documentation and serach for csr 
-https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/ 
-
-- Create private key 
-
-
+2. Generate a private key and CSR:
     ```bash
-openssl genrsa -out myuser.key 2048
-openssl req -new -key myuser.key -out myuser.csr -subj "/CN=myuser"
-
-cat myuser.csr | base64 | tr -d "\n"
-
+    openssl genrsa -out myuser.key 2048
+    openssl req -new -key myuser.key -out myuser.csr -subj "/CN=myuser"
+    cat myuser.csr | base64 | tr -d "\n"
     ```
-- Create a CertificateSigningRequest
+
+3. Create a `CertificateSigningRequest` resource:
     ```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: certificates.k8s.io/v1
-kind: CertificateSigningRequest
-metadata:
-  name: myuser
-spec:
-  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1ZqQ0NBVDRDQVFBd0VURVBNQTBHQTFVRUF3d0dZVzVuWld4aE1JSUJJakFOQmdrcWhraUc5dzBCQVFFRgpBQU9DQVE4QU1JSUJDZ0tDQVFFQTByczhJTHRHdTYxakx2dHhWTTJSVlRWMDNHWlJTWWw0dWluVWo4RElaWjBOCnR2MUZtRVFSd3VoaUZsOFEzcWl0Qm0wMUFSMkNJVXBGd2ZzSjZ4MXF3ckJzVkhZbGlBNVhwRVpZM3ExcGswSDQKM3Z3aGJlK1o2MVNrVHF5SVBYUUwrTWM5T1Nsbm0xb0R2N0NtSkZNMUlMRVI3QTVGZnZKOEdFRjJ6dHBoaUlFMwpub1dtdHNZb3JuT2wzc2lHQ2ZGZzR4Zmd4eW8ybmlneFNVekl1bXNnVm9PM2ttT0x1RVF6cXpkakJ3TFJXbWlECklmMXBMWnoyalVnald4UkhCM1gyWnVVV1d1T09PZnpXM01LaE8ybHEvZi9DdS8wYk83c0x0MCt3U2ZMSU91TFcKcW90blZtRmxMMytqTy82WDNDKzBERHk5aUtwbXJjVDBnWGZLemE1dHJRSURBUUFCb0FBd0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBR05WdmVIOGR4ZzNvK21VeVRkbmFjVmQ1N24zSkExdnZEU1JWREkyQTZ1eXN3ZFp1L1BVCkkwZXpZWFV0RVNnSk1IRmQycVVNMjNuNVJsSXJ3R0xuUXFISUh5VStWWHhsdnZsRnpNOVpEWllSTmU3QlJvYXgKQVlEdUI5STZXT3FYbkFvczFqRmxNUG5NbFpqdU5kSGxpT1BjTU1oNndLaTZzZFhpVStHYTJ2RUVLY01jSVUyRgpvU2djUWdMYTk0aEpacGk3ZnNMdm1OQUxoT045UHdNMGM1dVJVejV4T0dGMUtCbWRSeEgvbUNOS2JKYjFRQm1HCkkwYitEUEdaTktXTU0xMzhIQXdoV0tkNjVoVHdYOWl4V3ZHMkh4TG1WQzg0L1BHT0tWQW9FNkpsYWFHdTlQVmkKdjlOSjVaZlZrcXdCd0hKbzZXdk9xVlA3SVFjZmg3d0drWm89Ci0tLS0tRU5EIENFUlRJRklDQVRFIFJFUVVFU1QtLS0tLQo=
-  signerName: kubernetes.io/kube-apiserver-client
-  expirationSeconds: 86400  # one day
-  usages:
-  - client auth
-EOF
+    cat <<EOF | kubectl apply -f -
+    apiVersion: certificates.k8s.io/v1
+    kind: CertificateSigningRequest
+    metadata:
+      name: myuser
+    spec:
+      request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K...   # Base64 encoded CSR
+      signerName: kubernetes.io/kube-apiserver-client
+      expirationSeconds: 86400  # 1 day
+      usages:
+      - client auth
+    EOF
     ```
 
-        ```bash
-kubectl get csr
-
-    ```
-- Approve the CertificateSigningRequest 
-
-        ```bash
-kubectl certificate approve myuser
-
+4. Check the CSR:
+    ```bash
+    kubectl get csr
     ```
 
-
-        ```bash
-kubectl get csr myuser -o jsonpath='{.status.certificate}'| base64 -d > myuser.crt
-
-    ```
-- Create Role and RoleBinding 
-
-        ```bash
-kubectl create role developer --verb=create --verb=get --verb=list --verb=update --verb=delete --resource=pods
-
+5. Approve the CSR:
+    ```bash
+    kubectl certificate approve myuser
     ```
 
-        ```bash
-kubectl create rolebinding developer-binding-myuser --role=developer --user=myuser
-
-    ```
-- Add to kubeconfig 
-
-        ```bash
-kubectl config set-credentials myuser --client-key=myuser.key --client-certificate=myuser.crt --embed-certs=true
-
-    ```
-        ```bash
-kubectl config set-context myuser --cluster=kubernetes --user=myuser
-
-    ```
-        ```bash
-kubectl config use-context myuser
-
+6. Retrieve the signed certificate:
+    ```bash
+    kubectl get csr myuser -o jsonpath='{.status.certificate}' | base64 -d > myuser.crt
     ```
 
+---
 
---- 
+### Step 1: Create Role and RoleBinding
+1. Create a role named `developer` with the required permissions:
+    ```bash
+    kubectl create role developer \
+      --verb=create --verb=get --verb=list --verb=update --verb=delete \
+      --resource=pods
+    ```
+
+2. Bind the role to the user:
+    ```bash
+    kubectl create rolebinding developer-binding-myuser \
+      --role=developer --user=myuser
+    ```
+
+---
+
+### Step 2: Update kubeconfig
+1. Add the user to the kubeconfig:
+    ```bash
+    kubectl config set-credentials myuser \
+      --client-key=myuser.key \
+      --client-certificate=myuser.crt \
+      --embed-certs=true
+    ```
+
+2. Set a context for the user:
+    ```bash
+    kubectl config set-context myuser \
+      --cluster=kubernetes \
+      --user=myuser
+    ```
+
+3. Use the newly created context:
+    ```bash
+    kubectl config use-context myuser
+    ```
+
+---
 
 ## Q15: **Weightage: 4%**
 
 **Task:**  
-Create a nginx pod called dns-resolver using image
+Create an NGINX pod called `dns-resolver` using the `nginx` image. Expose it internally with a service called `dns-resolver-service`. Verify that the pod and service names are resolvable from within the cluster using the `busybox:1.28` image. Save the DNS lookup results in `/root/nginx.svc`.
 
-nginx, expose it internally with a service called dns- resolver-service.
+---
 
-Check if pod and service name are resolvable from within the cluster.
+### **Answer:**  
 
-Use the image: busybox:1.28 for dns lookup. Save the result in /root/nginx.svc
-
-
-**Answer:**  
-1. Run the command:
+1. Create the NGINX pod:
     ```bash
-
-    
+    kubectl run dns-resolver --image=nginx --restart=Never
     ```
 
---- 
+2. Expose the pod with a service:
+    ```bash
+    kubectl expose pod dns-resolver --type=ClusterIP --name=dns-resolver-service --port=80
+    ```
+
+3. Verify the pod and service resolution using the `busybox:1.28` image:
+    ```bash
+    kubectl run dns-check --rm -it --image=busybox:1.28 -- /bin/sh -c "nslookup dns-resolver-service"
+    ```
+
+4. Save the results to `/root/nginx.svc`:
+    ```bash
+    kubectl run dns-check --rm -it --image=busybox:1.28 -- /bin/sh -c "nslookup dns-resolver-service > /root/nginx.svc"
+    ```
+---
