@@ -585,3 +585,192 @@ Create an NGINX pod called `dns-resolver` using the `nginx` image. Expose it int
     kubectl run dns-check --rm -it --image=busybox:1.28 -- /bin/sh -c "nslookup dns-resolver-service > /root/nginx.svc"
     ```
 ---
+
+
+## Q16: **Weightage: 7%**
+
+A pod “appychip” (image=nginx) in default namespace is not running. 
+Find the problem and fix it and make it running.
+
+### **Answer:**  
+
+1. check the taint and toleration and show the pod describe
+
+``` bash
+controlplane $ k describe nodes node01 | grep Taint
+Taints:             dedicated=special-user:NoSchedule
+controlplane $ k describe nodes controlplane | grep Taint
+Taints:             dedicated=special-user:NoSchedule
+controlplane $
+```
+
+
+2. add a Tolerations for the pod accordingly
+
+``` bash
+tolerations:
+- key: "key1"
+  operator: "Equal"
+  value: "value1"
+  effect: "NoSchedule"
+- key: "key1"
+  operator: "Equal"
+  value: "value1"
+  effect: "NoExecute"
+```
+
+## Q17: **Weightage: 5%**
+
+Create a ReplicaSet (Name: appychip, Image: nginx:1.18, Replica: 4)
+
+There is already a Pod running in a cluster.
+
+Make sure that the total count of pods running in the cluster is not more than 4
+
+### **Answer:**  
+
+1. create the replicaset
+
+   ```bash
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: appychip
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: appychip
+  template:
+    metadata:
+      labels:
+        app: appychip
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.18
+   ```
+
+----
+
+
+## Q18: **Weightage: 11%**
+
+Create a Network Policy named "appychip" in default namespace There should be two types, ingress and egress.
+
+The ingress should block traffic from an IP range of your choice except some other IP range. Should also have namespace and pod selector.
+
+Ports for ingress policy should be 6379
+
+For Egress, it should allow traffic to an IP range of your choice on 5978 port.
+
+
+### **Answer:**  
+
+
+1. create a Network Policy
+
+``` bash
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+
+
+
+```
+
+----
+
+## Q19: **Weightage: 7%**
+
+
+You have access to multiple clusters from your main terminal through kubectl contexts. Write all those context names into /opt/course/1/contexts .
+
+Next write a command to display the current context into /opt/course/1/context_default_kubectl.sh, the command should use kubectl .
+
+Finally write a second command doing the same thing into /opt/course/1/context_default_no_kubectl.sh, but without the use of kubectl .
+
+
+### **Answer:**  
+
+```bash
+mkdir -p /opt/course/1/ && touch contexts && kubectl config get-contexts -o name > /opt/course/1/contexts
+```
+
+```bash
+mkdir -p /opt/course/1 && touch /opt/course/1/context_default_kubectl.sh && echo "kubectl config current-context"  > /opt/course/1/context_default_kubectl.sh  &&  chmod +x /opt/course/1/context_default_kubectl.sh
+```
+
+```bash
+
+mkdir -p /opt/course/1/ && \
+touch /opt/course/1/context_default_no_kubectl.sh && \
+cat .kube/config | grep current-context: | cut -d ' ' -f 2 > /opt/course/1/context_default_no_kubectl.sh && \
+chmod +x /opt/course/1/context_default_no_kubectl.sh
+
+
+```
+
+
+----
+
+## Q20: **Weightage: 7%**
+
+
+There are various Pods in all namespaces. Write a command into /opt/course/5/find_pods.sh which lists all Pods sorted by their AGE ( metadata.creationTimestamp ).
+
+Write a second command into /opt/course/5/find_pods_uid.sh which lists all Pods sorted by field metadata.uid . Use kubectl sorting for both commands
+
+### **Answer:**  
+
+```bash
+
+mkdir -p /opt/course/5/ && \
+touch /opt/course/5/find_pods.sh && \
+echo "kubectl get pod --all-namespaces --sort-by=metadata.creationTimestamp" > /opt/course/5/find_pods.sh && \
+chmod +x /opt/course/5/find_pods.sh
+
+```
+
+
+```bash
+
+mkdir -p /opt/course/5/ && \
+touch /opt/course/5/find_pods_uid.sh && \
+echo "kubectl get pod --all-namespaces --sort-by=metadata.uid" > /opt/course/5/find_pods_uid.sh && \
+chmod +x /opt/course/5/find_pods_uid.sh
+
+```
+
+
