@@ -774,3 +774,186 @@ chmod +x /opt/course/5/find_pods_uid.sh
 ```
 
 
+## Q21: **Weightage: 11%**
+
+
+Ssh into the controlplane node with ssh cluster1-controlplane1 . Check how the controlplane components kubelet, kube-apiserver, kubescheduler, kube-controller- manager and etcd are started/installed on the controlplane node. Also find out the name of the DNS application and how it's started/installed on the controlplane node.
+
+Write your findings into file /opt/course/8/controlplane-components.txt . The file should be structured like:
+
+# /opt/course/8/controlplane-components.txt
+
+kubelet: [TYPE]
+
+kube-apiserver: [TYPE]
+
+kube-scheduler: [TYPE]
+
+kube-controller-manager: [TYPE]
+
+etcd: [TYPE]
+
+dns: [TYPE] [NAME]
+
+Choices of [TYPE] are: not-installed, process, static-pod, pod
+
+
+### **Answer:**  
+
+1. **SSH into the Control Plane Node**:
+   ```bash
+   ssh cluster1-controlplane1
+   ```
+
+2. **Check for Kubelet**:
+   - Run:
+     ```bash
+     systemctl status kubelet
+     ```
+   - If it's running as a process managed by the system, its type is `process`.
+
+3. **Check for Other Components** (`kube-apiserver`, `kube-scheduler`, `kube-controller-manager`, `etcd`):
+   - Look for static pods in:
+     ```bash
+     ls /etc/kubernetes/manifests
+     ```
+   - If present, their type is `static-pod`.
+
+4. **Check for DNS Application**:
+   - Run:
+     ```bash
+     kubectl get pods --all-namespaces -o wide | grep dns
+     ```
+   - Identify the DNS pod name and namespace (usually `kube-dns` or `coredns` in the `kube-system` namespace). The type is `pod`.
+
+---
+
+### **Content for `/opt/course/8/controlplane-components.txt`**
+
+Here’s the structure of the findings:
+
+```plaintext
+# /opt/course/8/controlplane-components.txt
+
+kubelet: process
+
+kube-apiserver: static-pod
+
+kube-scheduler: static-pod
+
+kube-controller-manager: static-pod
+
+etcd: static-pod
+
+dns: pod coredns
+```
+
+- **kubelet**: Typically runs as a process managed by `systemd`.
+- **kube-apiserver**, **kube-scheduler**, **kube-controller-manager**, and **etcd**: Typically run as static pods in `/etc/kubernetes/manifests`.
+- **dns**: Runs as a regular pod, with the name likely being `coredns` or `kube-dns`.
+
+---
+
+### **Commands to Write to File**
+To save your findings into the file, run the following commands:
+
+```bash
+mkdir -p /opt/course/8/ && \
+echo "# /opt/course/8/controlplane-components.txt" > /opt/course/8/controlplane-components.txt && \
+echo "kubelet: process" >> /opt/course/8/controlplane-components.txt && \
+echo "kube-apiserver: static-pod" >> /opt/course/8/controlplane-components.txt && \
+echo "kube-scheduler: static-pod" >> /opt/course/8/controlplane-components.txt && \
+echo "kube-controller-manager: static-pod" >> /opt/course/8/controlplane-components.txt && \
+echo "etcd: static-pod" >> /opt/course/8/controlplane-components.txt && \
+echo "dns: pod coredns" >> /opt/course/8/controlplane-components.txt
+```
+
+----
+
+## Q22: **Weightage: 11%**
+
+Create a new namespace named appychip.
+
+Create a new network policy named my-policy in the appychip namespace
+
+Requirements
+
+1. Network Policy should allow PODS within the appychip to connect to each other only on port 80. No other ports should be allowed
+
+2. No PODs from outside of the appychip should be able to connect to any pods inside the appychip
+
+### **Answer:**  
+
+### **Steps to Implement the Solution**
+
+1. **Create the `appychip` Namespace**:
+   ```bash
+   kubectl create namespace appychip
+   ```
+
+2. **Define the Network Policy**:
+   Save the following YAML configuration as `my-policy.yaml`:
+   ```yaml
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: my-policy
+     namespace: appychip
+   spec:
+     podSelector: {}
+     policyTypes:
+       - Ingress
+     ingress:
+       - from:
+           - podSelector: {}
+         ports:
+           - protocol: TCP
+             port: 80
+   ```
+
+
+3. **Apply the Network Policy**:
+   ```bash
+   kubectl apply -f my-policy.yaml
+   ```
+
+---
+
+### **Verify the Setup**
+1. **Check the Namespace**:
+   ```bash
+   kubectl get namespace appychip
+   ```
+
+2. **Check the Network Policy**:
+   ```bash
+   kubectl get networkpolicy -n appychip
+   ```
+
+3. **Describe the Network Policy**:
+   ```bash
+   kubectl describe networkpolicy my-policy -n appychip
+   ```
+
+---
+
+## Q23: **Weightage: 7%**
+
+
+•Create a pod output-pod which write “Congratulations! You have passed CKA Exam” into a file “output-pod.txt"
+
+•The Pod output-pod should be deleted automatically after writing the text to the file.
+
+
+### **Answer:**  
+
+---
+
+### Steps to Implement
+
+1. **write a run pod command**:
+
+   ```bash
+   kubectl run output-pod --image=busybox -it --rm --restart=Never -- /bin/sh -c 'echo Congratulations! You have passed CKA Exam' > output-pod.txt
+
+   ```
