@@ -957,3 +957,10 @@ Requirements
    kubectl run output-pod --image=busybox -it --rm --restart=Never -- /bin/sh -c 'echo Congratulations! You have passed CKA Exam' > output-pod.txt
 
    ```
+
+---
+
+## Q24 
+
+
+Create a namespace finance, and Create a NetworkPolicy that blocks all traffic to pods in finance namespace, except for traffic from pods in the same namespace on port 8080.
