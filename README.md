@@ -1084,6 +1084,188 @@ status
 ```
 
 
-## Q28:
+## Q28:   weightage = 6%
+
+Auto scale the existing deployment front-end in production namespace at 80% of pod CPU usage, and set Minimum replicas= 3 and Maximum replicas= 5 。
+
+### **Answer:**  
+
+1. use the below command
+
+```bash 
+
+k autoscale deployment front-end --max=5 --min=3 --namespace=production --cpu-percent=80
+```
+2. verify
+
+```bash
+
+controlplane $ k autoscale deployment front-end --max=5 --min=3 --namespace=production --cpu-percent=80
+horizontalpodautoscaler.autoscaling/front-end autoscaled
+controlplane $ k get hpa -n production 
+NAME        REFERENCE              TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+front-end   Deployment/front-end   cpu: <unknown>/80%   3         5         0          13s
+controlplane $ 
+
+```
 
 
+## Q29:   weightage = 4%
+
+Expose existing deployment in production namespace named as front-end through Nodeport and Nodeport service name should be frontendsvc
+
+### **Answer:**  
+
+1. use the below command
+
+```bash
+k expose deployment front-end --namespace=production --name=frontendsvc --port=80 --target-port=80 --type=NodePort
+
+```
+2. verify
+
+```bash
+
+controlplane $ k get svc -n production 
+NAME          TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+frontendsvc   NodePort   10.97.218.89   <none>        80:31569/TCP   10s
+
+controlplane $ k get svc -n production -o wide 
+NAME          TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+frontendsvc   NodePort   10.97.218.89   <none>        80:31569/TCP   22s   app=front-end
+
+
+controlplane $ k get nodes -o wide 
+NAME           STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+controlplane   Ready    control-plane   14d   v1.31.0   172.30.1.2    <none>        Ubuntu 20.04.5 LTS   5.4.0-131-generic   containerd://1.7.13
+node01         Ready    <none>          14d   v1.31.0   172.30.2.2    <none>        Ubuntu 20.04.5 LTS   5.4.0-131-generic   containerd://1.7.13
+
+
+controlplane $ k get pod -n production -o wide 
+NAME                         READY   STATUS    RESTARTS   AGE     IP             NODE     NOMINATED NODE   READINESS GATES
+front-end-59fb5dd778-bb2mz   1/1     Running   0          9m4s    192.168.1.12   node01   <none>           <none>
+front-end-59fb5dd778-bpvdk   1/1     Running   0          4m35s   192.168.1.14   node01   <none>           <none>
+front-end-59fb5dd778-vphrs   1/1     Running   0          4m35s   192.168.1.13   node01   <none>           <none>
+
+
+
+controlplane $ curl http://172.30.2.2:31569
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+controlplane $ 
+
+```
+
+
+## Q30:   weightage = 6%
+
+Deploy a pod with the following specifications:
+
+Pod name: web-pod
+
+Image: httpd
+
+Node: Node01
+
+Note: do not modify any settings on master and worker nodes
+
+### **Answer:**  
+
+1. create a pos using a dry run command
+```bash 
+ k run web-pod --image=httpd --dry-run=client -o yaml > httpd.yaml
+```
+
+2. you can find that the node is cant be scheduled because of taint on the nodes as below
+
+
+the pod status as below 
+```bash
+controlplane $ k get pod
+NAME                            READY   STATUS    RESTARTS   AGE
+big-corp-app                    1/1     Running   0          39m
+cpu-hog                         1/1     Running   0          39m
+foo                             1/1     Running   0          39m
+front-end-59fb5dd778-dmh2g      1/1     Running   0          39m
+presentation-74fd86d4f5-scwt5   1/1     Running   0          39m
+web-pod                         0/1     Pending   0          47s
+
+```
+
+use to know the issue
+```bash
+k describe pod web-pod 
+```
+![alt text](image-2.png)
+
+3. note that in the question it asks not to change anything in the nodes
+
+```bash
+
+controlplane $ k describe nodes | grep Taint
+Taints:             node-role.kubernetes.io/control-plane:NoSchedule
+Taints:             dedicated=special-user:NoSchedule
+```
+
+
+4. edit your pod with toliration
+
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: web-pod
+  name: web-pod
+spec:
+  containers:
+  - image: httpd
+    name: web-pod
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    effect: "NoSchedule"
+    value: "special-user"
+```
+
+
+5. verify 
+
+```bash
+controlplane $ k get pod web-pod 
+NAME      READY   STATUS    RESTARTS   AGE
+web-pod   1/1     Running   0          8s
+controlplane $ 
+```
+
+## Q3:   weightage = 6%
+
+Create a new PersistentVolume named web-pv. it should have a capacity of 2Gi, accessMode ReadWriteOnce, hostPath /vol/data and no storageClassName defined.
+
+Next create a new PersistentVolumeClaim in Namespace production named web-pvc. It should request 2Gi storage, accessMode ReadWriteOnce and should not define a storageClassName. The PVC should bound to the PV correctly.
+
+Finally create a new Deployment web-deploy in Namespace production which mounts that volume at /tmp/web-data. The Pods of that Deployment should be of image nginx:1.14.2
+
+### **Answer:**  
