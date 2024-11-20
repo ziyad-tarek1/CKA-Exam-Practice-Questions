@@ -996,7 +996,7 @@ spec:
       port: 8080
 
 ```
-## Q25  
+## Q25:
 
 Create a NetworkPolicy that denies all access to the payroll Pod in the accounting namespace.
 
@@ -1030,10 +1030,60 @@ spec:
 
 ```
 
-## Q 26
+## Q26:
+
 Deployment named nginx-deployment is created in the default namespace, scale the deployment to 8 replicas.
+
+### **Answer:**  
+1. run the below
 
 ```bash
 k scale deployment nginx-deployment --replicas=3
 ```
+
+## Q27: 
+
+Create pod named multicontainer with multiple containers
+- container one
+image : redis
+name : redis
+
+- container two
+    image : nginx
+name : nginx
+
+### **Answer:**  
+
+1. create a dry run for pod multicontainer
+
+```bash
+k run multicontainer --image=nginx --dry-run=client -o yaml > multicontainer.yaml
+```
+
+2. add the new container in the yaml file
+
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: multicontainer
+  name: multicontainer
+spec:
+  containers:
+  - image: nginx
+    name: nginx   # change this line
+  - image: redis  # add this
+    name: redis    # add this line
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status
+
+```
+
+
+## Q28:
+
 
