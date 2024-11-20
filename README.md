@@ -964,3 +964,76 @@ Requirements
 
 
 Create a namespace finance, and Create a NetworkPolicy that blocks all traffic to pods in finance namespace, except for traffic from pods in the same namespace on port 8080.
+
+### **Answer:**  
+
+1. create a ns finance and label it with name= finance or app =finance
+   
+```bash
+k create ns finance
+k label ns finance app=finance
+k get ns --show-labels
+```
+
+2. create a network policy as below
+```bash
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: finance
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app: finance
+    ports:
+    - protocol: TCP
+      port: 8080
+
+```
+## Q25  
+
+Create a NetworkPolicy that denies all access to the payroll Pod in the accounting namespace.
+
+### **Answer:**  
+
+1. craete the accounting ns
+
+```bash
+k create ns accounting
+k label ns accounting app=accounting
+k get ns --show-labels
+```
+
+2. create a network policy as below
+
+
+```bash
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: accounting
+spec:
+  podSelector:
+    matchLabels:
+      name: payroll
+  policyTypes:
+  - Ingress
+  - Egress
+
+```
+
+## Q 26
+Deployment named nginx-deployment is created in the default namespace, scale the deployment to 8 replicas.
+
+```bash
+k scale deployment nginx-deployment --replicas=3
+```
+
