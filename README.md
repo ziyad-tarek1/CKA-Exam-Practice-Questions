@@ -1524,5 +1524,17 @@ from the documentation cheat sheet
 ```bash
 kubectl get nodes -o='custom-columns=NodeName:.metadata.name,TaintKey:.spec.taints[*].key,TaintValue:.spec.taints[*].value,TaintEffect:.spec.taints[*].effect'
 
-
 ```
+
+## Q35:   weightage = 4%
+
+Get the list of nodes in JSON format and store it in a file at /opt/outputs/nodes-z3444kd9.json.
+
+### **Answer:**  
+
+1. run the below command
+```bash
+kubectl get nodes -o json > /opt/outputs/nodes-z3444kd9.json
+```
+
+
