@@ -1260,12 +1260,95 @@ web-pod   1/1     Running   0          8s
 controlplane $ 
 ```
 
-## Q3:   weightage = 6%
+## Q30:   weightage = 6%
 
 Create a new PersistentVolume named web-pv. it should have a capacity of 2Gi, accessMode ReadWriteOnce, hostPath /vol/data and no storageClassName defined.
 
 Next create a new PersistentVolumeClaim in Namespace production named web-pvc. It should request 2Gi storage, accessMode ReadWriteOnce and should not define a storageClassName. The PVC should bound to the PV correctly.
 
 Finally create a new Deployment web-deploy in Namespace production which mounts that volume at /tmp/web-data. The Pods of that Deployment should be of image nginx:1.14.2
+
+### **Answer:**  
+
+
+1. create the pv 
+
+```bash 
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: web-pv
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/vol/data"
+```
+
+2. create the pvc 
+
+```bash
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web-pvc
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+```
+
+
+3. create the deployment
+
+```bash
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deploy
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx:1.14.2
+        name: nginx
+        ports:
+        - containerPort: 80
+          name: nginx
+        volumeMounts:
+        - name: web-pvct-storage
+          mountPath: /tmp/web-data
+      volumes:
+      - name: web-pvc-storage
+        persistentVolumeClaim:
+          claimName: web-pvc
+```
+
+## Q31:   weightage = 4%
+
+
+
+
+
 
 ### **Answer:**  
