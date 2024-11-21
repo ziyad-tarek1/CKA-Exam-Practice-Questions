@@ -1519,8 +1519,10 @@ Find the schedulable nodes in the cluster and save the name and count in to the 
 File path : /root/nodes.txt
 
 ### **Answer:**  
+from the documentation cheat sheet
 
 ```bash
+kubectl get nodes -o='custom-columns=NodeName:.metadata.name,TaintKey:.spec.taints[*].key,TaintValue:.spec.taints[*].value,TaintEffect:.spec.taints[*].effect'
 
 
 ```
