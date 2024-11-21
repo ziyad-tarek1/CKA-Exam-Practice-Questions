@@ -1346,9 +1346,124 @@ spec:
 
 ## Q31:   weightage = 4%
 
-
+Create a Kubernetes Pod named "my-busybox" with the busybox:1.31.1 image. The Pod should run a sleep command for 4800 seconds. Verify that the Pod is running in Node01.
 
 
 
 
 ### **Answer:**  
+
+
+1. create the pod from dry run command as below 
+
+```bash
+k run my-busybox --image=busybox:1.31.1 --command sleep 4800 --dry-run=client -o yaml > my-busybox.yaml
+```
+
+
+2. edit the my-busybox.yaml as shown
+
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: my-busybox
+  name: my-busybox
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: busybox:1.31.1
+    name: my-busybox
+  nodeSelector:   # edit this line
+    name: node01  # edit this line
+```
+
+
+3. dont forget to check if the node is cordened or no and to label the node as you selected
+
+```bash 
+k uncordon node01 
+k label nodes node01 name=node01
+```
+
+## Q31:   weightage = 4%
+
+You have a Kubernetes cluster that runs a three-tier web application: a frontend tier (port 80), an application tier (port 8080), and a backend tier (3306). The security team has mandated that the backend tier should only be accessible from the application tier.
+
+### **Answer:**  
+
+1. show the pods label in your env
+
+```bash
+k get pod --show-labels 
+```
+example output
+
+```bash
+controlplane $ k get pod --show-labels 
+NAME         READY   STATUS    RESTARTS   AGE     LABELS
+my-busybox   0/1     Pending   0          8m36s   run=my-busybox
+
+```
+
+2. create a networkpolicy 
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      tier: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: application
+    ports:
+    - protocol: TCP
+      port: 3306
+
+```
+
+---
+
+## Q32:   weightage = 4%
+
+
+ You have a Kubernetes cluster and running pods in multiple namespaces, The security team has mandated that the db pods on Project-a namespace only accessible from the service pods that are running in Project-b namespace.
+
+### **Answer:**  
+
+1. note no port defined in the question
+
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: project-a
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchNames:
+        - project-b
+      podSelector:
+        matchLabels:
+          app: service
+```
