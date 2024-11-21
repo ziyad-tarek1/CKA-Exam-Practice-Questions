@@ -1467,3 +1467,45 @@ spec:
         matchLabels:
           app: service
 ```
+
+---
+
+## Q33:   weightage = 4%
+
+Create a CronJob for running every 2 minutes with busybox image. The job name should be my-job and it should print the current date and time to the console. After running the job save any one of the pod logs to below path /root/logs.txt.
+
+### **Answer:**  
+
+
+1. search on the documentation for the CronJob
+
+```bash
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/2 * * * *"   #edit this line with /2 for running every 2 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox:1.28
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date             # we need only the date commad here
+          restartPolicy: OnFailure
+
+```
+
+2. dont forget to write any of the pods logs to the /root/logs.txt file 
+
+```bash
+
+k logs pod-14556622 > /root/logs.txt.
+```
