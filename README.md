@@ -1509,3 +1509,18 @@ spec:
 
 k logs pod-14556622 > /root/logs.txt.
 ```
+
+----
+
+## Q34:   weightage = 4%
+
+Find the schedulable nodes in the cluster and save the name and count in to the below file
+
+File path : /root/nodes.txt
+
+### **Answer:**  
+
+```bash
+
+
+```
