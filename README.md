@@ -1,4 +1,4 @@
-# CKA-Exam-Practice-Questions
+<img width="670" alt="image" src="https://github.com/user-attachments/assets/4fa9be59-7543-41c3-87a5-3f81602cf563"># CKA-Exam-Practice-Questions
 Certified Kubernetes Administrator Mock Exam Real Questions 
 
 ## Hyperlink Section  
@@ -1538,3 +1538,119 @@ kubectl get nodes -o json > /opt/outputs/nodes-z3444kd9.json
 ```
 
 
+## Q36 : weightage = 8%
+
+Create a Storage Class named kube-storage with a provisioner of kubernetes.io/no- provisioner and a volumeBindingMode of Immediate
+
+Create a Persistent Volume (PV) named kube-pv with a storage capacity of 50Mi using the kube-storage Storage Class with ReadWrite Once permission and host path /vol/kube-data.
+
+Create a Persistent Volume Claim (PVC) named kube-pvc in Namespace production that requests 30Mi of storage from the kube-pv
+
+Finally create a new pod web-pod in Namespace production which mounts that volume at /app/web-data. The Pods should be of image nginx:1.14.2
+
+
+### **Answer:**  
+
+### 1. **Storage Class**
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kube-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+```
+
+### 2. **Persistent Volume**
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kube-pv
+spec:
+  capacity:
+    storage: 50Mi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: kube-storage
+  hostPath:
+    path: /vol/kube-data
+```
+
+### 3. **Persistent Volume Claim**
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-pvc
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi
+  storageClassName: kube-storage
+```
+
+### 4. **Pod**
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+  namespace: production
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.14.2
+      volumeMounts:
+        - mountPath: /app/web-data
+          name: kube-volume
+  volumes:
+    - name: kube-volume
+      persistentVolumeClaim:
+        claimName: kube-pvc
+```
+
+---
+
+### Steps to Apply:
+1. **Apply the Storage Class**:
+   ```bash
+   kubectl apply -f storage-class.yaml
+   ```
+2. **Apply the Persistent Volume**:
+   ```bash
+   kubectl apply -f persistent-volume.yaml
+   ```
+3. **Apply the Persistent Volume Claim**:
+   ```bash
+   kubectl apply -f persistent-volume-claim.yaml
+   ```
+4. **Create the Namespace if it doesn't exist**:
+   ```bash
+   kubectl create namespace production
+   ```
+5. **Apply the Pod**:
+   ```bash
+   kubectl apply -f pod.yaml
+   ```
+
+### Verify:
+- Check the Storage Class:
+  ```bash
+  kubectl get storageclass
+  ```
+- Check the Persistent Volume:
+  ```bash
+  kubectl get pv
+  ```
+- Check the Persistent Volume Claim:
+  ```bash
+  kubectl get pvc -n production
+  ```
+- Check the Pod:
+  ```bash
+  kubectl get pods -n production
+  ```
