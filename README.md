@@ -1,18 +1,7 @@
-<img width="670" alt="image" src="https://github.com/user-attachments/assets/4fa9be59-7543-41c3-87a5-3f81602cf563"># CKA-Exam-Practice-Questions
+# CKA-Exam-Practice-Questions
 Certified Kubernetes Administrator Mock Exam Real Questions 
 
-## Hyperlink Section  
-- [Q1: Create a Pod with Special Capabilities](#q1-weightage-7)  
-- [Q2: Upgrade Deployment Image Version](#q2-weightage-11)  
-- [Q3: Scale a Deployment](#q3-weightage-7)  
-- [Q4: Deploy a Pod with Labels](#q4-weightage-4)  
-- [Q5: Create a Static Pod](#q5-weightage-4)  
-- [Q6: Create a Multi-Container Pod](#q6-weightage-7)  
-- [Q7: Create a Pod in a Custom Namespace](#q7-weightage-5)  
-- [Q8: Get Node Info in JSON Format](#q8-weightage-4) 
-- [Q9: Get Nodes oslmages Query Info in JSON Format](#q9-weightage-5) 
 
----
 
 ## Q1: **Weightage: 7%**
 
