@@ -135,6 +135,8 @@ echo "Pods have been deployed successfully!"
 # Create namespaces
 kubectl create namespace app-team1
 kubectl create namespace ing-internal
+kubectl create namespace echo 
+kubectl create namespace internal
 
 # Label node01 with specified labels
 kubectl label nodes node01 name=ek8s-node-1 disk=spinning
@@ -146,4 +148,6 @@ kubectl get namespaces
 # Verify the labels on node01
 echo "Labels on node01:"
 kubectl get node node01 --show-labels
+
+k create deployment front-end --image nginx --replicas 2
 
